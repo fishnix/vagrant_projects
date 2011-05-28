@@ -1,0 +1,16 @@
+{
+	"id": "s9ytest_macfish_org",
+	"site_name": "s9ytest.macfish.org",
+	"version": "1.5.5",
+	"dbName": "serendipity",
+	"dbPrefix": "serendipity_",
+	"dbHost": "localhost",
+	"dbUser": "s9ytest",
+	"dbPass": "s9ytest",
+	"dbType": "mysql",
+	"dbPersistent": "false",
+	"dbCharset": "utf8",
+	"site_aliases": [ ],
+	"custom_tmpl": { "bulletproof-tbb":"git://github.com/fishnix/bulletproof-tbb.git" },
+	"custom_plgn": { "serendipity_event_aws":"git://github.com/fishnix/serendipity_event_aws.git" }
+}
