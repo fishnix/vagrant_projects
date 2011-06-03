@@ -26,7 +26,6 @@ when "redhat","centos","fedora","suse"
   set[:apache][:binary]  = "/usr/sbin/httpd"
   set[:apache][:icondir] = "/var/www/icons/"
   set[:apache][:cache_dir] = "/var/cache/httpd"
-  set[:apache][:vhost_dir] = "/var/www/vhost"
 when "debian","ubuntu"
   set[:apache][:dir]     = "/etc/apache2"
   set[:apache][:log_dir] = "/var/log/apache2"
@@ -57,7 +56,7 @@ end
 
 # General settings
 default[:apache][:listen_ports] = [ "80","443" ]
-default[:apache][:contact] = "root@fishnix.com"
+default[:apache][:contact] = "ops@example.com"
 default[:apache][:timeout] = 300
 default[:apache][:keepalive] = "On"
 default[:apache][:keepaliverequests] = 100
@@ -65,7 +64,7 @@ default[:apache][:keepalivetimeout] = 5
 
 # Security
 default[:apache][:servertokens] = "Prod"
-default[:apache][:serversignature] = "Off"
+default[:apache][:serversignature] = "On"
 default[:apache][:traceenable] = "On"
 
 # mod_auth_openids

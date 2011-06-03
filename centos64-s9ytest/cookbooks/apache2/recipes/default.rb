@@ -62,13 +62,6 @@ if platform?("centos", "redhat", "fedora", "suse", "arch")
     mode 0755
     action :create
   end
-
-  directory node[:apache][:vhost_dir] do
-    mode 0755
-    owner "root"
-    group "apache"
-    action :create
-  end
   
   cookbook_file "/usr/local/bin/apache2_module_conf_generate.pl" do
     source "apache2_module_conf_generate.pl"
@@ -207,13 +200,9 @@ include_recipe "apache2::mod_env"
 include_recipe "apache2::mod_mime"
 include_recipe "apache2::mod_negotiation"
 include_recipe "apache2::mod_setenvif"
-include_recipe "apache2::mod_rewrite"
-include_recipe "apache2::mod_expires"
-include_recipe "apache2::mod_deflate"
-include_recipe "apache2::mod_log_config" if platform?("centos", "redhat", "suse", "arch")
+include_recipe "apache2::mod_log_config" if platform?("centos", "redhat", "fedora", "suse", "arch")
 
-# uncomment to get working example site on centos/redhat/fedora
-apache_site "default"
+apache_site "default" if platform?("centos", "redhat", "fedora")
 
 service "apache2" do
   action :start
