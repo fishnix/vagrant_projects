@@ -15,6 +15,10 @@
 
 	RewriteEngine On
 
+	#RewriteRule /(serendipity_admin.*)$ https://www.thebudgetbabe.com/$1 [R=302,L]
+	#Alias /sorry "/var/www/vhost/thebudgetbabe/sorry/"
+	#Alias /community "/var/www/vhost/thebudgetbabe/www-forums/phpBB3/"
+
 	AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
 
 	ExpiresActive On

@@ -47,7 +47,6 @@ search(:s9y_sites, "*:*") do |s9y_site|
 #  end
 
 
-  # not sure this is better since it won't "fix" changed files like above.
   git "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}" do
     repository "git://github.com/fishnix/serendipity.git"
     reference "master"
@@ -85,7 +84,7 @@ search(:s9y_sites, "*:*") do |s9y_site|
 
   site_aliases = []
   site_aliases = s9y_site['site_aliases']
-  template "#{node[:apache][:dir]}/sites-available/#{s9y_site['site_name']}.conf" do
+  template "#{node[:apache][:dir]}/conf.d/#{s9y_site['site_name']}.conf" do
     source "s9y_apache_conf.erb"
     owner "root"
     group "root"
@@ -96,12 +95,13 @@ search(:s9y_sites, "*:*") do |s9y_site|
       :server_aliases => site_aliases,
       #:server_aliases => "#{s9y_site['site_aliases']}"
     })
+    notifies :restart, resources(:service => "apache2")
   end
 
   # enable site in apache
-  link "#{node[:apache][:dir]}/sites-enabled/#{s9y_site['site_name']}.conf" do
-    to "#{node[:apache][:dir]}/sites-available/#{s9y_site['site_name']}.conf"
-    notifies :restart, resources(:service => "apache2")
-  end
+#  link "#{node[:apache][:dir]}/sites-enabled/#{s9y_site['site_name']}.conf" do
+#    to "#{node[:apache][:dir]}/sites-available/#{s9y_site['site_name']}.conf"
+#    notifies :restart, resources(:service => "apache2")
+#  end
 
 end

@@ -2,7 +2,11 @@
 # Cookbook Name:: apache2
 # Attributes:: apache
 #
-# Copyright 2008-2009, Opscode, Inc.
+# Some of below is borrowed from the opscode apache2 cookbook
+# but in general I didn't like that they switched from the centos/redhat
+# way to the ubuntu way of managing apache
+#
+# Copyright 2011, E Camden Fisher
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,20 +59,22 @@ end
 ###
 
 # General settings
-default[:apache][:listen_ports] = [ "80","443" ]
-default[:apache][:contact] = "ops@example.com"
+default[:apache][:listen_ports] = [ "80" ]
+default[:apache][:ssl_ports] = [ "443" ]
+default[:apache][:contact] = "root"
 default[:apache][:timeout] = 300
 default[:apache][:keepalive] = "On"
 default[:apache][:keepaliverequests] = 100
 default[:apache][:keepalivetimeout] = 5
+default[:apache][:namevhost] = "On"
+default[:apache][:namevhosts] = [ "127.0.0.1:80", "*:80" ]
 
 # Security
 default[:apache][:servertokens] = "Prod"
 default[:apache][:serversignature] = "On"
 default[:apache][:traceenable] = "On"
-
-# mod_auth_openids
-default[:apache][:allowed_openids] = Array.new
+default[:apache][:serverstatus] = "On"
+default[:apache][:serverinfo] = "Off"
 
 # Prefork Attributes
 default[:apache][:prefork][:startservers] = 16
