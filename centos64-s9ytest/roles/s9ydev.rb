@@ -6,5 +6,6 @@ run_list(
   "recipe[php::php5]",
   "recipe[php::module_mysql]",
   "recipe[mysql::server]",
+  "recipe[s9y]",
   "recipe[yum]"
 )

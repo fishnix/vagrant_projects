@@ -19,6 +19,12 @@
 
 include_recipe "apache2"
 
+package "git" do
+  package_name "git"
+  action :install
+end
+
+
 directory node[:s9y][:base_dir] do
   owner "root"
   group "apache"
@@ -26,9 +32,9 @@ directory node[:s9y][:base_dir] do
   action :create
 end
 
-s9y_sites = []
+s9y_sites = data_bag('s9y_sites')
 
-search(:s9y_sites, "*:*") do |s9y_site|
+s9y_sites.each do |s9y_site|
 
   # site's id -- not needed yet
   #site_id = s9y_site["id"]
@@ -45,36 +51,37 @@ search(:s9y_sites, "*:*") do |s9y_site|
 #    owner "root"
 #    group node[:apache][:user]
 #  end
+  site_defs = data_bag_item('s9y_sites', s9y_site)
+  site_name = site_defs['site_name']
 
-
-  git "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}" do
+  git "#{node[:s9y][:base_dir]}/#{site_name}" do
     repository "git://github.com/fishnix/serendipity.git"
     reference "master"
     action :sync
   end
 
-  directory "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}/uploads" do
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/uploads" do
      mode 0775
      owner "root"
      group "apache"
      action :create
   end
   
-  directory "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}/templates" do
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/templates" do
      mode 0755
      owner "root"
      group "apache"
      action :create
   end
 
-  directory "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}/templates_c" do
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/templates_c" do
      mode 0775
      owner "root"
      group "apache"
      action :create
   end
 
-  template "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}/serendipity_config_local.inc.php" do
+  template "#{node[:s9y][:base_dir]}/#{site_name}/serendipity_config_local.inc.php" do
     source "serendipity_config_local.inc.php.erb"
     owner "root"
     group "apache"
@@ -82,16 +89,15 @@ search(:s9y_sites, "*:*") do |s9y_site|
     backup false
   end
 
-  site_aliases = []
-  site_aliases = s9y_site['site_aliases']
-  template "#{node[:apache][:dir]}/conf.d/#{s9y_site['site_name']}.conf" do
+  site_aliases = site_defs['site_aliases']
+  template "#{node[:apache][:dir]}/conf.d/#{site_name}.conf" do
     source "s9y_apache_conf.erb"
     owner "root"
     group "root"
     mode 0644
     variables({
-      :docroot => "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}",
-      :server_name => "#{s9y_site['site_name']}",
+      :docroot => "#{node[:s9y][:base_dir]}/#{site_name}",
+      :server_name => "#{site_name}",
       :server_aliases => site_aliases,
       #:server_aliases => "#{s9y_site['site_aliases']}"
     })
