@@ -54,34 +54,34 @@ s9y_sites.each do |s9y_site|
   site_defs = data_bag_item('s9y_sites', s9y_site)
   site_name = site_defs['site_name']
 
-  git "#{node[:s9y][:base_dir]}/#{site_name}" do
-    repository "git://github.com/fishnix/serendipity.git"
-    reference "master"
-    action :sync
-  end
+  #git "#{node[:s9y][:base_dir]}/#{site_name}" do
+  #  repository "git://github.com/fishnix/serendipity.git"
+  #  reference "master"
+  #  action :sync
+  #end
 
-  directory "#{node[:s9y][:base_dir]}/#{site_name}/uploads" do
+  directory "#{node[:s9y][:base_dir]}/#{site_name}" do
      mode 0775
      owner "root"
-     group "apache"
+     group "root"
      action :create
   end
   
-  directory "#{node[:s9y][:base_dir]}/#{site_name}/templates" do
-     mode 0755
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/shared" do
+     mode 0775
      owner "root"
-     group "apache"
+     group "root"
      action :create
   end
 
-  directory "#{node[:s9y][:base_dir]}/#{site_name}/templates_c" do
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/shared/uploads" do
      mode 0775
      owner "root"
      group "apache"
      action :create
   end
 
-  template "#{node[:s9y][:base_dir]}/#{site_name}/serendipity_config_local.inc.php" do
+  template "#{node[:s9y][:base_dir]}/#{site_name}/shared/serendipity_config_local.inc.php" do
     source "serendipity_config_local.inc.php.erb"
     owner "root"
     group "apache"
@@ -89,6 +89,42 @@ s9y_sites.each do |s9y_site|
     backup false
   end
 
+  deploy_revision "#{node[:s9y][:base_dir]}/#{site_name}" do
+    repo "git://github.com/fishnix/serendipity.git"
+    revision "HEAD"
+    user "root"
+    group "apache"
+    enable_submodules false
+    migrate false
+    purge_before_symlink [ "uploads" ]
+    symlinks  "uploads" => "uploads", 
+              "serendipity_config_local.inc.php" => "serendipity_config_local.inc.php"
+    #symlinks ({})
+    symlink_before_migrate ({})
+    #migration_command "touch foo"
+    #environment "RAILS_ENV" => "production", "OTHER_ENV" => "foo"
+    shallow_clone true
+    action :deploy # or :rollback
+    restart_command "touch tmp/restart.txt"
+    #git_ssh_wrapper "wrap-ssh4git.sh"
+    scm_provider Chef::Provider::Git
+  end
+
+  
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/current/templates" do
+     mode 0755
+     owner "root"
+     group "apache"
+     action :create
+  end
+
+  directory "#{node[:s9y][:base_dir]}/#{site_name}/current/templates_c" do
+     mode 0775
+     owner "root"
+     group "apache"
+     action :create
+  end
+  
   site_aliases = site_defs['site_aliases']
   template "#{node[:apache][:dir]}/conf.d/#{site_name}.conf" do
     source "s9y_apache_conf.erb"

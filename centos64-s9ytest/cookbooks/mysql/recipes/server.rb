@@ -122,6 +122,10 @@ rescue
   end
 end
 
+service "mysql" do
+  action :start
+end
+
 execute "mysql-install-privileges" do
   command "/usr/bin/mysql -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }#{node['mysql']['server_root_password']} < #{grants_path}"
   action :nothing
