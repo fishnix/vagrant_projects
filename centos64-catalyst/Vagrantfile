@@ -1,0 +1,6 @@
+Vagrant::Config.run do |config|
+  config.vm.box = "centos56_64-chef10"
+  config.ssh.forwarded_port_key = "ssh"
+  config.vm.forward_port("ssh", 22, 2222)
+  config.vm.forward_port("catalyst", 3000, 3080)
+end

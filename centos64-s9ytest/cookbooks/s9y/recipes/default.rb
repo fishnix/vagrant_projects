@@ -18,6 +18,7 @@
 #
 
 include_recipe "apache2"
+include_recipe "mysql::server"
 
 package "git" do
   package_name "git"
@@ -36,29 +37,8 @@ s9y_sites = data_bag('s9y_sites')
 
 s9y_sites.each do |s9y_site|
 
-  # site's id -- not needed yet
-  #site_id = s9y_site["id"]
-  # list of sites -- note needed yet
-  #s9y_sites << site_id
-
-#  remote_directory "#{node[:s9y][:base_dir]}/#{s9y_site['site_name']}" do
-#    source "serendipity"
-#    files_backup 2
-#    files_mode "0644"
-#    files_owner "root"
-#    files_group "apache"
-#    mode 0755
-#    owner "root"
-#    group node[:apache][:user]
-#  end
   site_defs = data_bag_item('s9y_sites', s9y_site)
   site_name = site_defs['site_name']
-
-  #git "#{node[:s9y][:base_dir]}/#{site_name}" do
-  #  repository "git://github.com/fishnix/serendipity.git"
-  #  reference "master"
-  #  action :sync
-  #end
 
   directory "#{node[:s9y][:base_dir]}/#{site_name}" do
      mode 0775
@@ -73,6 +53,18 @@ s9y_sites.each do |s9y_site|
      group "root"
      action :create
   end
+
+  cookbook_file "#{node[:s9y][:base_dir]}/#{site_name}/shared/favicon.ico" do
+     owner "root"
+     group "root"
+     mode 0444
+  end
+  
+  cookbook_file "#{node[:s9y][:base_dir]}/#{site_name}/shared/favicon.gif" do
+     owner "root"
+     group "root"
+     mode 0444
+  end 
 
   directory "#{node[:s9y][:base_dir]}/#{site_name}/shared/uploads" do
      mode 0775
@@ -98,15 +90,13 @@ s9y_sites.each do |s9y_site|
     migrate false
     purge_before_symlink [ "uploads" ]
     symlinks  "uploads" => "uploads", 
-              "serendipity_config_local.inc.php" => "serendipity_config_local.inc.php"
-    #symlinks ({})
+              "serendipity_config_local.inc.php" => "serendipity_config_local.inc.php",
+              "favicon.ico" => "favicon.ico",
+              "favicon.gif" => "favicon.gif"
     symlink_before_migrate ({})
-    #migration_command "touch foo"
-    #environment "RAILS_ENV" => "production", "OTHER_ENV" => "foo"
+    migration_command ""
     shallow_clone true
     action :deploy # or :rollback
-    restart_command "touch tmp/restart.txt"
-    #git_ssh_wrapper "wrap-ssh4git.sh"
     scm_provider Chef::Provider::Git
   end
 
@@ -132,18 +122,54 @@ s9y_sites.each do |s9y_site|
     group "root"
     mode 0644
     variables({
-      :docroot => "#{node[:s9y][:base_dir]}/#{site_name}",
+      :docroot => "#{node[:s9y][:base_dir]}/#{site_name}/current",
       :server_name => "#{site_name}",
       :server_aliases => site_aliases,
-      #:server_aliases => "#{s9y_site['site_aliases']}"
     })
     notifies :restart, resources(:service => "apache2")
   end
+  
+  dbHost = site_defs['dbHost']
+  dbName = site_defs['dbName']
+  dbUser = site_defs['dbUser']
+  dbPass = site_defs['dbPass']
 
-  # enable site in apache
-#  link "#{node[:apache][:dir]}/sites-enabled/#{s9y_site['site_name']}.conf" do
-#    to "#{node[:apache][:dir]}/sites-available/#{s9y_site['site_name']}.conf"
-#    notifies :restart, resources(:service => "apache2")
-#  end
+  execute "mysql-install-s9y-privileges" do
+    command "/usr/bin/mysql -u root -p#{node['mysql']['server_root_password']} < #{node['mysql']['conf_dir']}/s9y-grants.sql"
+    action :nothing
+  end
 
+  template "#{node['mysql']['conf_dir']}/s9y-grants.sql" do
+    source "grants.sql.erb"
+    owner "root"
+    group "root"
+    mode "0600"
+    variables(
+      :user     => dbUser,
+      :password => dbPass,
+      :database => dbName
+    )
+    notifies :run, "execute[mysql-install-s9y-privileges]", :immediately
+  end
+
+  execute "create #{dbName} database" do
+    command "/usr/bin/mysqladmin -u root -p#{node['mysql']['server_root_password']} create #{dbName}"
+    not_if do
+      require 'mysql'
+      m = Mysql.new("dbHost", "root", node['mysql']['server_root_password'])
+      m.list_dbs.include?(dbName)
+    end
+    notifies :create, "ruby_block[save node data]", :immediately
+  end
 end
+
+# save node data after writing the MYSQL root password, so that a failed 
+# chef-client run that gets this far doesn't cause an unknown password to 
+# get applied to the box without being saved in the node data.
+ruby_block "save node data" do
+  block do
+    node.save
+  end
+  action :create
+end
+
