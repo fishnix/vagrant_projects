@@ -84,4 +84,15 @@ end
 
 cpan_module "Catalyst::Runtime"
 cpan_module "Catalyst::Devel" 
-
+cpan_module "Catalyst::Helper::View::TT"
+cpan_module "File::ChangeNotify"
+cpan_module "Catalyst::Model::DBIC::Schema"
+cpan_module "DBD::SQLite"
+cpan_module "Catalyst::Plugin::StackTrace"
+cpan_module "HTML::FormFu"
+cpan_module "Catalyst::Controller::HTML::FormFu"
+cpan_module "HTML::FormFu::Model::DBIC"
+cpan_module "Catalyst::Plugin::Authentication"
+cpan_module "Catalyst::Plugin::Session"
+cpan_module "Catalyst:Plugin::Session::Store::File"
+cpan_module "Catalyst::Plugin::Session::State::Cookie"
